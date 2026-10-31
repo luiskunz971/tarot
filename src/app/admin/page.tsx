@@ -9,6 +9,8 @@ type AdminPerson = {
   name: string;
   description: string;
   photoUrl: string | null;
+  usedAt: number | null;
+  useCount: number;
 };
 
 type FormState = {
@@ -188,6 +190,11 @@ export default function AdminPage() {
             <div className={styles.personInfo}>
               <strong>{p.name}</strong>
               <p>{p.description || <em>Sin descripción</em>}</p>
+              <span className={p.usedAt ? styles.used : styles.notUsed}>
+                {p.usedAt
+                  ? `Consultó ${p.useCount} ${p.useCount === 1 ? "vez" : "veces"} · última: ${new Date(p.usedAt).toLocaleDateString("es-AR")}`
+                  : "Todavía no consultó"}
+              </span>
             </div>
             <div className={styles.personActions}>
               <button className={styles.secondary} onClick={() => edit(p)}>

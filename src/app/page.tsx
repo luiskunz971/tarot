@@ -10,7 +10,7 @@ import styles from "./page.module.css";
 
 type Step = "name" | "focus" | "pick" | "reading";
 
-type PublicPerson = { id: number; name: string; photoUrl: string | null };
+type PublicPerson = { id: number; name: string; photoUrl: string | null; used: boolean };
 
 export default function Home() {
   const [step, setStep] = useState<Step>("name");
@@ -62,6 +62,11 @@ export default function Home() {
   async function revealAndRead() {
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
     setStep("reading");
+    // Cuenta como consulta desde este momento
+    if (personId !== null) {
+      setPeople((list) => list?.map((p) => (p.id === personId ? { ...p, used: true } : p)) ?? list);
+      void fetch(`/api/people/${personId}/use`, { method: "POST" }).catch(() => {});
+    }
     // Las cartas se corren a la izquierda y se abre el panel de la lectura
     await wait(350);
     setSplit(true);
@@ -145,7 +150,7 @@ export default function Home() {
               {people.map((p) => (
                 <button
                   key={p.id}
-                  className={`${styles.personTile} ${personId === p.id ? styles.active : ""}`}
+                  className={`${styles.personTile} ${p.used ? "" : styles.unused} ${personId === p.id ? styles.active : ""}`}
                   onClick={() => setPersonId(p.id)}
                   aria-pressed={personId === p.id}
                 >

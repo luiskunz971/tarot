@@ -10,6 +10,8 @@ export type Person = {
   description: string;
   hasPhoto: boolean;
   updatedAt: number;
+  usedAt: number | null; // última vez que tocó "Revelar mi destino"
+  useCount: number;
 };
 
 let client: Client | null = null;
@@ -41,7 +43,23 @@ async function db(): Promise<Client> {
         updated_at INTEGER NOT NULL
       )`,
     )
-    .then(() => undefined)
+    .then(async () => {
+      // Columnas agregadas después de la primera versión
+      const cols = await c.execute("PRAGMA table_info(people)");
+      const names = cols.rows.map((r) => String(r.name));
+      const addColumn = async (sql: string) => {
+        try {
+          await c.execute(sql);
+        } catch (err) {
+          // Otra instancia pudo haberla agregado al mismo tiempo
+          if (!String(err).includes("duplicate column")) throw err;
+        }
+      };
+      if (!names.includes("used_at")) await addColumn("ALTER TABLE people ADD COLUMN used_at INTEGER");
+      if (!names.includes("use_count")) {
+        await addColumn("ALTER TABLE people ADD COLUMN use_count INTEGER NOT NULL DEFAULT 0");
+      }
+    })
     .catch((err) => {
       ready = null; // reintentar en el próximo pedido
       throw err;
@@ -57,10 +75,13 @@ function toPerson(row: Record<string, unknown>): Person {
     description: String(row.description ?? ""),
     hasPhoto: Number(row.has_photo) === 1,
     updatedAt: Number(row.updated_at),
+    usedAt: row.used_at == null ? null : Number(row.used_at),
+    useCount: Number(row.use_count ?? 0),
   };
 }
 
-const PERSON_COLUMNS = "id, name, description, photo IS NOT NULL AS has_photo, updated_at";
+const PERSON_COLUMNS =
+  "id, name, description, photo IS NOT NULL AS has_photo, updated_at, used_at, use_count";
 
 export async function listPeople(): Promise<Person[]> {
   const c = await db();
@@ -112,6 +133,15 @@ export async function updatePerson(
           sql: "UPDATE people SET name = ?, description = ?, photo = ?, photo_type = ?, updated_at = ? WHERE id = ?",
           args: [name, description, photo?.data ?? null, photo?.type ?? null, Date.now(), id],
         });
+  return res.rowsAffected > 0;
+}
+
+export async function markUsed(id: number): Promise<boolean> {
+  const c = await db();
+  const res = await c.execute({
+    sql: "UPDATE people SET used_at = ?, use_count = use_count + 1 WHERE id = ?",
+    args: [Date.now(), id],
+  });
   return res.rowsAffected > 0;
 }
 
