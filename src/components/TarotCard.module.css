@@ -1,0 +1,183 @@
+.card {
+  perspective: 1000px;
+  flex-shrink: 0;
+}
+
+.lg {
+  width: 150px;
+  height: 250px;
+}
+
+.md {
+  width: 120px;
+  height: 200px;
+}
+
+.sm {
+  width: 70px;
+  height: 116px;
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.9s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flipped .inner {
+  transform: rotateY(180deg);
+}
+
+.back,
+.front {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.back {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.18), transparent 60%),
+    repeating-linear-gradient(45deg, #2a1650 0 8px, #22113f 8px 16px);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backPattern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold);
+  font-size: 1.4em;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 6px;
+  padding: 10px 6px;
+}
+
+.sm .backPattern {
+  font-size: 0.7em;
+  padding: 5px 3px;
+  gap: 2px;
+}
+
+.backStar {
+  font-size: 1.6em;
+}
+
+.front {
+  transform: rotateY(180deg);
+  background: linear-gradient(170deg, #fbf3dc, #ecd9a8);
+  border: 2px solid var(--gold);
+}
+
+.face {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 10px;
+  color: #3b2160;
+  border: 1px solid rgba(59, 33, 96, 0.35);
+  margin: 6px;
+  height: calc(100% - 12px);
+  border-radius: 6px;
+}
+
+.reversed {
+  transform: rotate(180deg);
+}
+
+.numeral {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+}
+
+.symbol {
+  font-size: 3.6rem;
+  line-height: 1;
+  color: #6b3fa0;
+  text-shadow: 0 0 12px rgba(107, 63, 160, 0.3);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 560px) {
+  .md {
+    width: 90px;
+    height: 150px;
+  }
+  .lg {
+    width: 100px;
+    height: 168px;
+  }
+  .symbol {
+    font-size: 2.4rem;
+  }
+  .name {
+    font-size: 0.6rem;
+  }
+  .numeral {
+    font-size: 0.85rem;
+  }
+}
+
+/* Carta ilustrada */
+.illustrated {
+  position: relative;
+  height: 100%;
+  background: #1a0b33;
+}
+
+.art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: #f6e7b8;
+  background: linear-gradient(to top, rgba(18, 8, 38, 0.95) 45%, transparent);
+}
+
+.bannerNumeral {
+  color: var(--gold);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 560px) {
+  .banner {
+    font-size: 0.55rem;
+    padding: 12px 4px 5px;
+  }
+}
