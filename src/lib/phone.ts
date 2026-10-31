@@ -7,3 +7,9 @@ export function toWaNumber(input: string): string {
   digits = digits.replace(/^0/, ""); // 011... -> 11...
   return `549${digits}`;
 }
+
+// Acepta dígitos, espacios, +, guiones y paréntesis, con 8 a 15 dígitos en total
+export function isValidPhone(input: string): boolean {
+  const digits = input.replace(/\D/g, "").length;
+  return digits >= 8 && digits <= 15 && !/[^\d\s+()-]/.test(input);
+}

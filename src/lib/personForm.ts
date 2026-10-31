@@ -1,5 +1,6 @@
 import "server-only";
 import type { PersonInput, PhotoInput } from "./db";
+import { isValidPhone } from "./phone";
 
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -11,8 +12,7 @@ export async function readPersonForm(req: Request): Promise<PersonInput | { erro
   const description = String(form.get("description") ?? "").trim().slice(0, 1500);
   const phone = String(form.get("phone") ?? "").trim().slice(0, 30);
   if (!name) return { error: "El nombre es obligatorio." };
-  const phoneDigits = phone.replace(/\D/g, "").length;
-  if (phone && (phoneDigits < 8 || phoneDigits > 15 || /[^\d\s+()-]/.test(phone))) {
+  if (phone && !isValidPhone(phone)) {
     return { error: "El número de WhatsApp no parece válido." };
   }
 

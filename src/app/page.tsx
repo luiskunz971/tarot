@@ -333,6 +333,9 @@ export default function Home() {
                   name={name.trim()}
                   reading={reading}
                   cards={chosen}
+                  onPhoneSaved={() =>
+                    setPeople((list) => list?.map((p) => (p.id === personId ? { ...p, hasPhone: true } : p)) ?? list)
+                  }
                 />
                 <button className={styles.ghostButton} onClick={restart}>
                   ↺ Hacer otra consulta

@@ -141,6 +141,24 @@ export async function updatePerson(id: number, p: PersonInput): Promise<boolean>
   return res.rowsAffected > 0;
 }
 
+// Los datos de WhatsApp de una persona solo se usan si consultó hace poco,
+// para que desde la página pública no se puedan leer ni cambiar los de otros.
+const SHARE_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+export function consultedRecently(p: Person): boolean {
+  return p.usedAt !== null && Date.now() - p.usedAt < SHARE_WINDOW_MS;
+}
+
+// Guarda el número solo si la persona todavía no tenía uno
+export async function setPhoneIfEmpty(id: number, phone: string): Promise<boolean> {
+  const c = await db();
+  const res = await c.execute({
+    sql: "UPDATE people SET phone = ? WHERE id = ? AND phone = ''",
+    args: [phone, id],
+  });
+  return res.rowsAffected > 0;
+}
+
 export async function markUsed(id: number): Promise<boolean> {
   const c = await db();
   const res = await c.execute({
