@@ -132,7 +132,7 @@ export default function Home() {
       </header>
 
       {step === "name" && (
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.panelWide}`}>
           <p className={styles.speech}>
             Te doy la bienvenida, alma viajera. Antes de abrir las cartas, necesito saber… ¿quién consulta hoy?
           </p>
@@ -146,7 +146,11 @@ export default function Home() {
           )}
 
           {people && people.length > 0 && (
-            <div className={styles.people}>
+            <div
+              className={styles.people}
+              // Filas que ocupa la grilla con 6 columnas: las fotos se achican si hay más gente
+              style={{ ["--rows" as string]: Math.max(2, Math.ceil(people.length / 6)) }}
+            >
               {people.map((p) => (
                 <button
                   key={p.id}

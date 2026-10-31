@@ -13,7 +13,7 @@
 
 .header h1 {
   font-family: var(--font-script);
-  font-size: clamp(3.2rem, 11vw, 5.4rem);
+  font-size: clamp(2.6rem, min(11vw, 9vh), 5.4rem);
   font-weight: 400;
   line-height: 1.1;
   color: var(--gold);
@@ -168,14 +168,34 @@
   color: var(--gold);
 }
 
-/* Elegir persona */
+/* Elegir persona: pensado para una tele, con todas las personas a la vista */
+.panelWide {
+  max-width: 1400px;
+  padding: clamp(16px, 2.5vh, 28px) clamp(16px, 3vw, 40px);
+  gap: clamp(10px, 2vh, 18px);
+}
+
 .people {
+  --cols: 6;
+  /* Tamaño de la foto según el lugar disponible: ancho por columna y alto por fila */
+  --avatar: clamp(44px, min(calc(70vw / var(--cols)), calc(32vh / var(--rows))), 130px);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 12px;
-  max-height: 340px;
-  overflow-y: auto;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: clamp(8px, 1.5vh, 16px);
   padding: 4px;
+}
+
+@media (max-width: 1000px) {
+  .people {
+    --cols: 4;
+  }
+}
+
+@media (max-width: 640px) {
+  .people {
+    --cols: 3;
+    --avatar: 64px;
+  }
 }
 
 .personTile {
@@ -183,8 +203,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 14px 8px;
+  gap: clamp(4px, 1vh, 10px);
+  padding: clamp(6px, 1.2vh, 14px) 6px;
   background: transparent;
   color: var(--text);
   border: 1px solid rgba(212, 175, 55, 0.3);
@@ -199,15 +219,15 @@
 }
 
 .avatar {
-  width: 72px;
-  height: 72px;
+  width: var(--avatar, 72px);
+  height: var(--avatar, 72px);
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: calc(var(--avatar, 72px) * 0.4);
   color: var(--gold);
   background: radial-gradient(circle, rgba(160, 110, 230, 0.4), rgba(30, 16, 58, 0.9));
   border: 2px solid rgba(212, 175, 55, 0.5);
@@ -242,7 +262,7 @@
 }
 
 .personName {
-  font-size: 1.1rem;
+  font-size: clamp(1rem, min(1.4vw, 2.4vh), 1.6rem);
   text-align: center;
   line-height: 1.2;
 }
@@ -512,5 +532,19 @@
   .reading {
     padding: 20px;
     font-size: 1.12rem;
+  }
+}
+
+/* Pantallas bajas (por ejemplo una tele que el navegador muestra a 960×540) */
+@media (max-height: 700px) {
+  .main {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 10px;
+  }
+  .moon,
+  .tagline,
+  .footer {
+    display: none;
   }
 }
