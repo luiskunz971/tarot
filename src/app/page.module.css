@@ -539,10 +539,12 @@
 }
 
 .consultantName {
-  font-family: var(--font-script);
-  font-size: 2.4rem;
-  line-height: 1.1;
-  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 
 .readingText p + p {
@@ -681,7 +683,7 @@
     font-size: 1.2rem;
   }
   .consultantName {
-    font-size: 1.8rem;
+    font-size: 1.25rem;
   }
   .tools {
     margin-top: 12px;
