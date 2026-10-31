@@ -145,6 +145,22 @@ export async function markUsed(id: number): Promise<boolean> {
   return res.rowsAffected > 0;
 }
 
+// Marca a mano si la persona ya consultó. Al desmarcar se borra también el contador.
+export async function setUsed(id: number, used: boolean): Promise<boolean> {
+  const c = await db();
+  const res = used
+    ? await c.execute({ sql: "UPDATE people SET used_at = ? WHERE id = ?", args: [Date.now(), id] })
+    : await c.execute({ sql: "UPDATE people SET used_at = NULL, use_count = 0 WHERE id = ?", args: [id] });
+  return res.rowsAffected > 0;
+}
+
+// Deja a todos como "todavía no consultó"
+export async function resetAllUsage(): Promise<number> {
+  const c = await db();
+  const res = await c.execute("UPDATE people SET used_at = NULL, use_count = 0");
+  return res.rowsAffected;
+}
+
 export async function deletePerson(id: number): Promise<boolean> {
   const c = await db();
   const res = await c.execute({ sql: "DELETE FROM people WHERE id = ?", args: [id] });

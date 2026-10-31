@@ -94,6 +94,30 @@ export default function AdminPage() {
     await load();
   }
 
+  async function toggleUsed(p: AdminPerson) {
+    const res = await fetch(`/api/admin/people/${p.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ used: !p.usedAt }),
+    });
+    if (!res.ok) {
+      setMessage({ text: "No se pudo cambiar el estado.", error: true });
+      return;
+    }
+    await load();
+  }
+
+  async function resetAll() {
+    if (!confirm("¿Marcar a todos como que todavía no consultaron?")) return;
+    const res = await fetch("/api/admin/usage-reset", { method: "POST" });
+    if (!res.ok) {
+      setMessage({ text: "No se pudo reiniciar.", error: true });
+      return;
+    }
+    setMessage({ text: "Listo: todos quedaron sin consultar ✦" });
+    await load();
+  }
+
   async function remove(p: AdminPerson) {
     if (!confirm(`¿Borrar a ${p.name}? No se puede deshacer.`)) return;
     const res = await fetch(`/api/admin/people/${p.id}`, { method: "DELETE" });
@@ -176,6 +200,16 @@ export default function AdminPage() {
       </form>
 
       <section className={styles.list}>
+        {people.some((p) => p.usedAt) && (
+          <div className={styles.listHeader}>
+            <span>
+              {people.filter((p) => p.usedAt).length} de {people.length} ya consultaron
+            </span>
+            <button className={styles.secondary} onClick={() => void resetAll()}>
+              Reiniciar a todos
+            </button>
+          </div>
+        )}
         {people.length === 0 && <p className={styles.empty}>Todavía no hay nadie cargado.</p>}
         {people.map((p) => (
           <article key={p.id} className={styles.person}>
@@ -191,12 +225,17 @@ export default function AdminPage() {
               <strong>{p.name}</strong>
               <p>{p.description || <em>Sin descripción</em>}</p>
               <span className={p.usedAt ? styles.used : styles.notUsed}>
-                {p.usedAt
-                  ? `Consultó ${p.useCount} ${p.useCount === 1 ? "vez" : "veces"} · última: ${new Date(p.usedAt).toLocaleDateString("es-AR")}`
-                  : "Todavía no consultó"}
+                {!p.usedAt
+                  ? "Todavía no consultó"
+                  : p.useCount > 0
+                    ? `Consultó ${p.useCount} ${p.useCount === 1 ? "vez" : "veces"} · última: ${new Date(p.usedAt).toLocaleDateString("es-AR")}`
+                    : `Marcado como que consultó · ${new Date(p.usedAt).toLocaleDateString("es-AR")}`}
               </span>
             </div>
             <div className={styles.personActions}>
+              <button className={styles.secondary} onClick={() => void toggleUsed(p)}>
+                {p.usedAt ? "Marcar sin consultar" : "Marcar consultó"}
+              </button>
               <button className={styles.secondary} onClick={() => edit(p)}>
                 Editar
               </button>
