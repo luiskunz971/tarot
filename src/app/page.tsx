@@ -10,7 +10,14 @@ import styles from "./page.module.css";
 
 type Step = "name" | "focus" | "pick" | "reading";
 
-type PublicPerson = { id: number; name: string; photoUrl: string | null; used: boolean; hasPhone: boolean };
+type PublicPerson = {
+  id: number;
+  name: string;
+  photoUrl: string | null;
+  used: boolean;
+  useCount: number;
+  hasPhone: boolean;
+};
 
 export default function Home() {
   const [step, setStep] = useState<Step>("name");
@@ -64,7 +71,9 @@ export default function Home() {
     setStep("reading");
     // Cuenta como consulta desde este momento
     if (personId !== null) {
-      setPeople((list) => list?.map((p) => (p.id === personId ? { ...p, used: true } : p)) ?? list);
+      setPeople(
+        (list) => list?.map((p) => (p.id === personId ? { ...p, used: true, useCount: p.useCount + 1 } : p)) ?? list,
+      );
       void fetch(`/api/people/${personId}/use`, { method: "POST" }).catch(() => {});
     }
     // Las cartas se corren a la izquierda y se abre el panel de la lectura
@@ -160,7 +169,13 @@ export default function Home() {
                   className={`${styles.personTile} ${p.used ? "" : styles.unused} ${personId === p.id ? styles.active : ""}`}
                   onClick={() => setPersonId(p.id)}
                   aria-pressed={personId === p.id}
+                  aria-label={p.useCount > 1 ? `${p.name}, consultó ${p.useCount} veces` : p.name}
                 >
+                  {p.useCount > 1 && (
+                    <span className={styles.useChip} aria-hidden>
+                      ×{p.useCount}
+                    </span>
+                  )}
                   <span className={styles.avatar}>
                     {p.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
