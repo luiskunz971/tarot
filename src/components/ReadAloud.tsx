@@ -5,12 +5,12 @@ import styles from "./ReadAloud.module.css";
 
 type Status = "idle" | "loading" | "speaking";
 
-// Voces del navegador, por si no está configurada la voz argentina de Azure
-const PREFERRED_VOICES = ["Paulina", "Mónica", "Monica", "Marisol", "Sabina", "Helena", "Laura", "Elvira", "Dalia", "Google español"];
+// Voces del navegador, por si falla la voz del servidor. Primero las argentinas.
+const PREFERRED_VOICES = ["Elena", "Tomas", "Tomás", "Diego", "Paulina", "Mónica", "Monica", "Marisol", "Sabina", "Helena", "Laura", "Elvira", "Dalia", "Google español"];
 
 function pickBrowserVoice(): SpeechSynthesisVoice | undefined {
   const spanish = window.speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith("es"));
-  const argentine = spanish.find((v) => v.lang === "es-AR");
+  const argentine = spanish.find((v) => v.lang.replace("_", "-").toLowerCase() === "es-ar");
   if (argentine) return argentine;
   for (const name of PREFERRED_VOICES) {
     const v = spanish.find((s) => s.name.includes(name));
@@ -92,7 +92,7 @@ export default function ReadAloud({ text }: { text: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!res.ok) throw new Error("sin voz de Azure");
+      if (!res.ok) throw new Error("sin voz del servidor");
       const blob = await res.blob();
       if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
       audioUrlRef.current = URL.createObjectURL(blob);

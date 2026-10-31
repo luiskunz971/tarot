@@ -47,3 +47,11 @@ En la primera pantalla se elige quién consulta de una lista. Las personas se ca
 1. En el proyecto de Vercel, andá a **Storage → Marketplace → Turso** y creá una base (plan gratis). Eso agrega `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN` a las variables de entorno. También podés crear la base en turso.tech y cargar esas dos variables a mano.
 2. Agregá `ADMIN_PASSWORD`, `ANTHROPIC_API_KEY` (y `ANTHROPIC_WORKSPACE_ID`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` si los usás).
 3. Hacé deploy. La tabla se crea sola la primera vez.
+
+## Voz
+
+La lectura en voz alta usa la voz argentina `es-AR-ElenaNeural` a través del servicio gratuito de "Leer en voz alta" de Microsoft Edge (paquete `msedge-tts`), sin necesidad de API key. Funciona en cualquier navegador porque el audio se genera en el servidor.
+
+- Para la voz masculina, poné `TTS_VOICE=es-AR-TomasNeural` en `.env.local`.
+- Si configurás `AZURE_SPEECH_KEY` y `AZURE_SPEECH_REGION`, se usa Azure (más estable, con pausas entre párrafos).
+- Si el servidor no puede generar la voz, el navegador lee con su propia voz.

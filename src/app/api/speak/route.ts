@@ -1,7 +1,14 @@
+import { Readable } from "node:stream";
+import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+
 export const runtime = "nodejs";
 
-// Voz argentina de Azure. Alternativa masculina: "es-AR-TomasNeural".
-const VOICE = process.env.AZURE_SPEECH_VOICE || "es-AR-ElenaNeural";
+// Voz argentina. Alternativa masculina: "es-AR-TomasNeural".
+const VOICE = process.env.TTS_VOICE || process.env.AZURE_SPEECH_VOICE || "es-AR-ElenaNeural";
+
+// Un ritmo un poco más lento, como una tarotista
+const RATE = "-10%";
+const PITCH = "-2%";
 
 function escapeXml(text: string): string {
   return text
@@ -12,30 +19,38 @@ function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export async function POST(req: Request) {
-  const key = process.env.AZURE_SPEECH_KEY;
-  const region = process.env.AZURE_SPEECH_REGION;
-  if (!key || !region) {
-    // Sin credenciales: el navegador usa su propia voz
-    return Response.json({ error: "Voz de Azure no configurada." }, { status: 501 });
-  }
-
-  const { text } = (await req.json()) as { text?: string };
-  const clean = (text ?? "").replace(/\*\*/g, "").trim().slice(0, 5000);
-  if (!clean) {
-    return Response.json({ error: "No hay texto para leer." }, { status: 400 });
-  }
-
-  // Pausas entre párrafos y un ritmo un poco más lento, como una tarotista
-  const body = clean
+function paragraphs(text: string): string[] {
+  return text
     .split(/\n{2,}/)
     .map((p) => escapeXml(p.trim()))
-    .filter(Boolean)
-    .join('<break time="700ms"/>');
+    .filter(Boolean);
+}
 
+const audioHeaders = { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" };
+
+// Voz gratuita: el servicio de "Leer en voz alta" de Microsoft Edge. No pide clave.
+// No acepta SSML propio (por ejemplo <break>), así que las pausas salen de los saltos de párrafo.
+async function speakWithEdge(text: string): Promise<Response> {
+  const tts = new MsEdgeTTS();
+  await tts.setMetadata(VOICE, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
+  const { audioStream } = tts.toStream(paragraphs(text).join("\n\n"), { rate: RATE, pitch: PITCH });
+
+  // Juntamos el audio entero antes de responder: si el servicio falla a mitad,
+  // devolvemos un error y el navegador usa su propia voz.
+  const chunks: Buffer[] = [];
+  try {
+    for await (const chunk of audioStream as Readable) chunks.push(chunk as Buffer);
+  } finally {
+    tts.close();
+  }
+  return new Response(new Uint8Array(Buffer.concat(chunks)), { headers: audioHeaders });
+}
+
+// Voz de Azure (opcional): se usa si están configuradas AZURE_SPEECH_KEY y AZURE_SPEECH_REGION.
+async function speakWithAzure(text: string, key: string, region: string): Promise<Response> {
   const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="es-AR">
   <voice name="${VOICE}">
-    <prosody rate="-10%" pitch="-2%">${body}</prosody>
+    <prosody rate="${RATE}" pitch="${PITCH}">${paragraphs(text).join('<break time="700ms"/>')}</prosody>
   </voice>
 </speak>`;
 
@@ -50,12 +65,25 @@ export async function POST(req: Request) {
     body: ssml,
   });
 
-  if (!res.ok) {
-    console.error("Error de Azure TTS:", res.status, await res.text());
-    return Response.json({ error: "No se pudo generar la voz." }, { status: 502 });
+  if (!res.ok) throw new Error(`Azure TTS ${res.status}: ${await res.text()}`);
+  return new Response(res.body, { headers: audioHeaders });
+}
+
+export async function POST(req: Request) {
+  const { text } = (await req.json()) as { text?: string };
+  const clean = (text ?? "").replace(/\*\*/g, "").trim().slice(0, 5000);
+  if (!clean) {
+    return Response.json({ error: "No hay texto para leer." }, { status: 400 });
   }
 
-  return new Response(res.body, {
-    headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" },
-  });
+  const key = process.env.AZURE_SPEECH_KEY;
+  const region = process.env.AZURE_SPEECH_REGION;
+
+  try {
+    return key && region ? await speakWithAzure(clean, key, region) : await speakWithEdge(clean);
+  } catch (err) {
+    // El navegador usa su propia voz si esto falla
+    console.error("Error al generar la voz:", err);
+    return Response.json({ error: "No se pudo generar la voz." }, { status: 502 });
+  }
 }
