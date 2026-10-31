@@ -12,6 +12,6 @@ export async function GET() {
 export async function POST(req: Request) {
   const fields = await readPersonForm(req);
   if ("error" in fields) return Response.json(fields, { status: 400 });
-  const id = await createPerson(fields.name, fields.description, fields.photo ?? null);
+  const id = await createPerson({ ...fields, photo: fields.photo ?? null });
   return Response.json({ id }, { status: 201 });
 }

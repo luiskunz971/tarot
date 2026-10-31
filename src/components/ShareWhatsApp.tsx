@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import type { DrawnCard } from "@/lib/cards";
+import { toWaNumber } from "@/lib/phone";
 import styles from "./ShareWhatsApp.module.css";
 
 type Props = {
+  personId: number | null;
+  hasPhone: boolean; // si la persona tiene su WhatsApp cargado en /admin
   name: string;
   reading: string;
   cards: DrawnCard[];
@@ -20,24 +23,25 @@ function buildMessage(name: string, reading: string, cards: DrawnCard[]): string
   return `🔮 *Lectura de tarot de ${name} con Madam Esteves*\n\n${spread}\n\n${body}`;
 }
 
-// Normaliza un número argentino al formato de wa.me (549 + código de área + número)
-function toWaNumber(input: string): string {
-  let digits = input.replace(/\D/g, "");
-  if (!digits) return "";
-  if (digits.startsWith("54")) return digits;
-  digits = digits.replace(/^0/, ""); // 011... -> 11...
-  return `549${digits}`;
+function openInNewTab(url: string) {
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
-export default function ShareWhatsApp({ name, reading, cards }: Props) {
+export default function ShareWhatsApp({ personId, hasPhone, name, reading, cards }: Props) {
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState("");
 
-  function send() {
-    const number = toWaNumber(phone);
-    const text = encodeURIComponent(buildMessage(name, reading, cards));
-    // Sin número, WhatsApp deja elegir el contacto
-    window.open(`https://wa.me/${number}?text=${text}`, "_blank", "noopener,noreferrer");
+  const text = () => encodeURIComponent(buildMessage(name, reading, cards));
+
+  // Al número guardado de la persona (el servidor lo busca, no se expone en la página)
+  function sendToPerson() {
+    openInNewTab(`/api/people/${personId}/whatsapp?text=${text()}`);
+    setOpen(false);
+  }
+
+  // A otro número, o sin número para elegir el contacto en WhatsApp
+  function sendToOther() {
+    openInNewTab(`https://wa.me/${toWaNumber(phone)}?text=${text()}`);
     setOpen(false);
   }
 
@@ -53,9 +57,17 @@ export default function ShareWhatsApp({ name, reading, cards }: Props) {
           className={styles.popover}
           onSubmit={(e) => {
             e.preventDefault();
-            send();
+            sendToOther();
           }}
         >
+          {hasPhone && personId !== null && (
+            <>
+              <button type="button" className={styles.send} onClick={sendToPerson}>
+                <FaWhatsapp aria-hidden /> Enviar al WhatsApp de {name}
+              </button>
+              <span className={styles.divider}>o a otro número</span>
+            </>
+          )}
           <label className={styles.label} htmlFor="wa-phone">
             Número de WhatsApp
           </label>
@@ -67,10 +79,10 @@ export default function ShareWhatsApp({ name, reading, cards }: Props) {
             placeholder="11 2345 6789"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            autoFocus
+            autoFocus={!hasPhone}
           />
           <span className={styles.hint}>Con código de área, sin 0 ni 15. Vacío para elegir el contacto.</span>
-          <button className={styles.send} type="submit">
+          <button className={hasPhone ? styles.sendSecondary : styles.send} type="submit">
             <FaWhatsapp aria-hidden /> Enviar
           </button>
         </form>

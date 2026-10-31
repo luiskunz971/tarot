@@ -10,7 +10,7 @@ import styles from "./page.module.css";
 
 type Step = "name" | "focus" | "pick" | "reading";
 
-type PublicPerson = { id: number; name: string; photoUrl: string | null; used: boolean };
+type PublicPerson = { id: number; name: string; photoUrl: string | null; used: boolean; hasPhone: boolean };
 
 export default function Home() {
   const [step, setStep] = useState<Step>("name");
@@ -306,7 +306,13 @@ export default function Home() {
             {reading && done && (
               <div className={styles.tools}>
                 <ReadAloud text={reading} />
-                <ShareWhatsApp name={name.trim()} reading={reading} cards={chosen} />
+                <ShareWhatsApp
+                  personId={personId}
+                  hasPhone={person?.hasPhone ?? false}
+                  name={name.trim()}
+                  reading={reading}
+                  cards={chosen}
+                />
               </div>
             )}
           </div>

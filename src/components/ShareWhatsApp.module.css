@@ -90,6 +90,28 @@
   background: #2ee072;
 }
 
+.sendSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  background: transparent;
+  color: #25d366;
+  border: 1px solid #25d366;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.divider {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
 @keyframes pop {
   from {
     opacity: 0;

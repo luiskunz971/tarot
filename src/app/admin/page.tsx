@@ -8,6 +8,7 @@ type AdminPerson = {
   id: number;
   name: string;
   description: string;
+  phone: string;
   photoUrl: string | null;
   usedAt: number | null;
   useCount: number;
@@ -17,12 +18,21 @@ type FormState = {
   id: number | null; // null = persona nueva
   name: string;
   description: string;
+  phone: string;
   photo: Blob | null;
   preview: string | null;
   removePhoto: boolean;
 };
 
-const EMPTY_FORM: FormState = { id: null, name: "", description: "", photo: null, preview: null, removePhoto: false };
+const EMPTY_FORM: FormState = {
+  id: null,
+  name: "",
+  description: "",
+  phone: "",
+  photo: null,
+  preview: null,
+  removePhoto: false,
+};
 
 // Achica la foto a 400px como máximo y la pasa a JPEG, para que pese poco en la base
 async function resizeImage(file: File, max = 400): Promise<Blob> {
@@ -54,7 +64,15 @@ export default function AdminPage() {
   }, [load]);
 
   function edit(p: AdminPerson) {
-    setForm({ id: p.id, name: p.name, description: p.description, photo: null, preview: p.photoUrl, removePhoto: false });
+    setForm({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      phone: p.phone,
+      photo: null,
+      preview: p.photoUrl,
+      removePhoto: false,
+    });
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -76,6 +94,7 @@ export default function AdminPage() {
     const data = new FormData();
     data.set("name", form.name);
     data.set("description", form.description);
+    data.set("phone", form.phone);
     if (form.photo) data.set("photo", form.photo, "foto.jpg");
     if (form.removePhoto) data.set("removePhoto", "1");
 
@@ -164,6 +183,17 @@ export default function AdminPage() {
               />
             </label>
             <label>
+              WhatsApp
+              <input
+                type="tel"
+                inputMode="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                maxLength={30}
+                placeholder="11 2345 6789 (con código de área, sin 0 ni 15)"
+              />
+            </label>
+            <label>
               Descripción
               <textarea
                 value={form.description}
@@ -223,6 +253,7 @@ export default function AdminPage() {
             </span>
             <div className={styles.personInfo}>
               <strong>{p.name}</strong>
+              {p.phone && <span className={styles.phone}>· {p.phone}</span>}
               <p>{p.description || <em>Sin descripción</em>}</p>
               <span className={p.usedAt ? styles.used : styles.notUsed}>
                 {!p.usedAt

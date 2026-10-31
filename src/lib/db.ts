@@ -8,6 +8,7 @@ export type Person = {
   id: number;
   name: string;
   description: string;
+  phone: string; // número de WhatsApp, tal como se cargó
   hasPhoto: boolean;
   updatedAt: number;
   usedAt: number | null; // última vez que tocó "Revelar mi destino"
@@ -56,6 +57,7 @@ async function db(): Promise<Client> {
         }
       };
       if (!names.includes("used_at")) await addColumn("ALTER TABLE people ADD COLUMN used_at INTEGER");
+      if (!names.includes("phone")) await addColumn("ALTER TABLE people ADD COLUMN phone TEXT NOT NULL DEFAULT ''");
       if (!names.includes("use_count")) {
         await addColumn("ALTER TABLE people ADD COLUMN use_count INTEGER NOT NULL DEFAULT 0");
       }
@@ -73,6 +75,7 @@ function toPerson(row: Record<string, unknown>): Person {
     id: Number(row.id),
     name: String(row.name),
     description: String(row.description ?? ""),
+    phone: String(row.phone ?? ""),
     hasPhoto: Number(row.has_photo) === 1,
     updatedAt: Number(row.updated_at),
     usedAt: row.used_at == null ? null : Number(row.used_at),
@@ -81,7 +84,7 @@ function toPerson(row: Record<string, unknown>): Person {
 }
 
 const PERSON_COLUMNS =
-  "id, name, description, photo IS NOT NULL AS has_photo, updated_at, used_at, use_count";
+  "id, name, description, phone, photo IS NOT NULL AS has_photo, updated_at, used_at, use_count";
 
 export async function listPeople(): Promise<Person[]> {
   const c = await db();
@@ -106,32 +109,34 @@ export async function getPhoto(id: number): Promise<{ data: Uint8Array; type: st
 
 export type PhotoInput = { data: Uint8Array; type: string };
 
-export async function createPerson(name: string, description: string, photo: PhotoInput | null): Promise<number> {
+export type PersonInput = {
+  name: string;
+  description: string;
+  phone: string;
+  // undefined = no cambiar, null = borrar, PhotoInput = reemplazar
+  photo: PhotoInput | null | undefined;
+};
+
+export async function createPerson(p: PersonInput): Promise<number> {
   const c = await db();
   const res = await c.execute({
-    sql: "INSERT INTO people (name, description, photo, photo_type, updated_at) VALUES (?, ?, ?, ?, ?)",
-    args: [name, description, photo?.data ?? null, photo?.type ?? null, Date.now()],
+    sql: "INSERT INTO people (name, description, phone, photo, photo_type, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+    args: [p.name, p.description, p.phone, p.photo?.data ?? null, p.photo?.type ?? null, Date.now()],
   });
   return Number(res.lastInsertRowid);
 }
 
-// photo: undefined = no cambiar, null = borrar, PhotoInput = reemplazar
-export async function updatePerson(
-  id: number,
-  name: string,
-  description: string,
-  photo: PhotoInput | null | undefined,
-): Promise<boolean> {
+export async function updatePerson(id: number, p: PersonInput): Promise<boolean> {
   const c = await db();
   const res =
-    photo === undefined
+    p.photo === undefined
       ? await c.execute({
-          sql: "UPDATE people SET name = ?, description = ?, updated_at = ? WHERE id = ?",
-          args: [name, description, Date.now(), id],
+          sql: "UPDATE people SET name = ?, description = ?, phone = ?, updated_at = ? WHERE id = ?",
+          args: [p.name, p.description, p.phone, Date.now(), id],
         })
       : await c.execute({
-          sql: "UPDATE people SET name = ?, description = ?, photo = ?, photo_type = ?, updated_at = ? WHERE id = ?",
-          args: [name, description, photo?.data ?? null, photo?.type ?? null, Date.now(), id],
+          sql: "UPDATE people SET name = ?, description = ?, phone = ?, photo = ?, photo_type = ?, updated_at = ? WHERE id = ?",
+          args: [p.name, p.description, p.phone, p.photo?.data ?? null, p.photo?.type ?? null, Date.now(), id],
         });
   return res.rowsAffected > 0;
 }

@@ -10,7 +10,7 @@ export async function PUT(req: Request, { params }: Ctx) {
   if (!Number.isInteger(id)) return Response.json({ error: "ID inválido." }, { status: 400 });
   const fields = await readPersonForm(req);
   if ("error" in fields) return Response.json(fields, { status: 400 });
-  const ok = await updatePerson(id, fields.name, fields.description, fields.photo);
+  const ok = await updatePerson(id, fields);
   return ok ? Response.json({ ok }) : Response.json({ error: "No existe esa persona." }, { status: 404 });
 }
 
