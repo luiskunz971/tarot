@@ -47,9 +47,14 @@ export default function ShareWhatsApp({ personId, hasPhone, name, reading, cards
 
   return (
     <div className={styles.wrap}>
-      <button className={styles.button} onClick={() => setOpen(!open)} aria-expanded={open}>
+      <button
+        className={styles.button}
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label="Enviar la lectura por WhatsApp"
+      >
         <FaWhatsapp className={styles.icon} aria-hidden />
-        Enviar por WhatsApp
+        Enviar
       </button>
 
       {open && (

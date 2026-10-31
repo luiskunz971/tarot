@@ -7,13 +7,14 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  letter-spacing: 0.06em;
+  font-size: var(--tool-font, 0.95rem);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
   background: transparent;
   color: #25d366;
   border: 1px solid #25d366;
   border-radius: 999px;
-  padding: 11px 22px;
+  padding: var(--tool-pad, 11px 22px);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -23,7 +24,7 @@
 }
 
 .icon {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
 }
 
 .popover {

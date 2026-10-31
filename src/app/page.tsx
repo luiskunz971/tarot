@@ -124,7 +124,7 @@ export default function Home() {
   const focusReady = wantsQuestion ? question.trim().length > 2 : topic !== "";
 
   return (
-    <main className={`${styles.main} ${step === "name" ? styles.fit : ""}`}>
+    <main className={`${styles.main} ${step === "name" || step === "reading" ? styles.fit : ""}`}>
       <header className={`${styles.header} ${step === "pick" || step === "reading" ? styles.compact : ""}`}>
         <span className={styles.moon}>☾ ✦ ☽</span>
         <h1>Madam Esteves</h1>
@@ -297,6 +297,20 @@ export default function Home() {
       {step === "reading" && (
         <div className={`${styles.readingArea} ${split ? styles.split : ""}`}>
           <div className={styles.spread}>
+            {person && (
+              <div className={styles.consultant}>
+                <span className={styles.consultantAvatar}>
+                  {person.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={person.photoUrl} alt="" />
+                  ) : (
+                    person.name.charAt(0).toUpperCase()
+                  )}
+                </span>
+                <span className={styles.consultantName}>{person.name}</span>
+              </div>
+            )}
+
             <div className={styles.slots}>
               {chosen.map((card, i) => (
                 <div key={card.id} className={styles.slot}>
@@ -320,6 +334,9 @@ export default function Home() {
                   reading={reading}
                   cards={chosen}
                 />
+                <button className={styles.ghostButton} onClick={restart}>
+                  ↺ Hacer otra consulta
+                </button>
               </div>
             )}
           </div>
@@ -333,13 +350,6 @@ export default function Home() {
               {reading && (
                 <div className={styles.readingText}>
                   <ReadingText text={reading} />
-                </div>
-              )}
-              {reading && done && (
-                <div className={styles.choiceRow}>
-                  <button className={styles.button} onClick={restart}>
-                    Hacer otra consulta
-                  </button>
                 </div>
               )}
             </div>

@@ -430,7 +430,7 @@
 
 /* Lectura: cartas a la izquierda, texto a la derecha */
 .readingArea {
-  max-width: 1280px;
+  max-width: 1500px;
 }
 
 .spread {
@@ -457,14 +457,74 @@
   scrollbar-color: rgba(212, 175, 55, 0.5) transparent;
 }
 
+/* Botones debajo de las cartas, todos en una fila */
 .tools {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 24px;
+  margin-top: 22px;
   animation: fadeIn 0.6s ease;
+  --tool-font: 0.82rem;
+  --tool-pad: 9px 16px;
+}
+
+.ghostButton {
+  font-family: var(--font-display);
+  font-size: var(--tool-font);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 999px;
+  padding: var(--tool-pad);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ghostButton:hover {
+  background: rgba(212, 175, 55, 0.12);
+}
+
+/* Quién consulta, arriba de las cartas */
+.consultant {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+  animation: fadeIn 0.6s ease;
+}
+
+.consultantAvatar {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--gold);
+  background: radial-gradient(circle, rgba(160, 110, 230, 0.4), rgba(30, 16, 58, 0.9));
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 18px rgba(212, 175, 55, 0.4);
+}
+
+.consultantAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.consultantName {
+  font-family: var(--font-script);
+  font-size: 2.4rem;
+  line-height: 1.1;
+  color: var(--gold);
 }
 
 .readingText p + p {
@@ -510,8 +570,20 @@
   }
 
   .split .readingPanel {
-    flex-basis: 52%;
+    flex-basis: 48%;
     margin-left: 32px;
+  }
+
+  /* En pantallas medianas se achica todo el bloque de las cartas para que entre en su columna */
+  .spread {
+    zoom: var(--spread-zoom, 1);
+  }
+
+  /* Ocupa justo el alto que queda debajo del título, sin scroll de la página */
+  .fit .readingArea {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
   }
 
   .reading {
@@ -582,6 +654,23 @@
 
 /* Pantallas bajas (por ejemplo una tele que el navegador muestra a 960×540) */
 @media (max-height: 700px) {
+  .consultant {
+    margin-bottom: 10px;
+  }
+  .consultantAvatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+  .consultantName {
+    font-size: 1.8rem;
+  }
+  .tools {
+    margin-top: 12px;
+  }
+  .readingArea .cardCaption {
+    display: none;
+  }
   .main {
     padding-top: 10px;
     padding-bottom: 10px;
@@ -591,5 +680,17 @@
   .tagline,
   .footer {
     display: none;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1270px) {
+  .spread {
+    --spread-zoom: 0.85;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .spread {
+    --spread-zoom: 0.72;
   }
 }
