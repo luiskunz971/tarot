@@ -168,26 +168,62 @@
   color: var(--gold);
 }
 
-/* Elegir persona: pensado para una tele, con todas las personas a la vista */
+/* Elegir persona: pensado para una tele, con todas las personas a la vista sin scroll.
+   La pantalla ocupa justo el alto de la ventana y la grilla usa todo el lugar que sobra. */
 .panelWide {
-  max-width: 1400px;
-  padding: clamp(16px, 2.5vh, 28px) clamp(16px, 3vw, 40px);
-  gap: clamp(10px, 2vh, 18px);
+  max-width: 1500px;
+  padding: clamp(12px, 2.2vh, 28px) clamp(16px, 3vw, 40px);
+  gap: clamp(8px, 1.8vh, 18px);
+}
+
+@media (min-width: 641px) {
+  .fit {
+    height: 100vh;
+    height: 100dvh;
+  }
+  .fit .panelWide {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .fit .people {
+    flex: 1 1 auto;
+    min-height: 0;
+    container-type: size;
+  }
 }
 
 .people {
   --cols: 6;
-  /* Tamaño de la foto según el lugar disponible: ancho por columna y alto por fila */
-  --avatar: clamp(44px, min(calc(70vw / var(--cols)), calc(32vh / var(--rows))), 130px);
+  --rows: var(--rows-6, 3);
+  --gap: clamp(6px, 1.4vh, 16px);
+  --name-size: clamp(0.95rem, min(1.3vw, 2.3vh), 1.5rem);
+  --tile-pad: clamp(4px, 1vh, 12px);
+  /* Alto que ocupa todo lo que no es la foto: márgenes, separación y hasta 2 líneas de nombre */
+  --tile-extra: calc(2 * var(--tile-pad) + var(--tile-pad) + 2 * 1.2 * var(--name-size) + 6px);
+  --avatar: clamp(
+    36px,
+    min(
+      calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols) * 0.62),
+      calc((100cqh - (var(--rows) - 1) * var(--gap)) / var(--rows) - var(--tile-extra))
+    ),
+    150px
+  );
   display: grid;
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-  gap: clamp(8px, 1.5vh, 16px);
-  padding: 4px;
+  align-content: center;
+  gap: var(--gap);
 }
 
-@media (max-width: 1000px) {
+@supports not (width: 1cqh) {
+  .people {
+    --avatar: 72px;
+  }
+}
+
+@media (max-width: 760px) {
   .people {
     --cols: 4;
+    --rows: var(--rows-4, 4);
   }
 }
 
@@ -200,11 +236,13 @@
 
 .personTile {
   font: inherit;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(4px, 1vh, 10px);
-  padding: clamp(6px, 1.2vh, 14px) 6px;
+  justify-content: center;
+  gap: var(--tile-pad);
+  padding: var(--tile-pad) 6px;
   background: transparent;
   color: var(--text);
   border: 1px solid rgba(212, 175, 55, 0.3);
@@ -219,6 +257,7 @@
 }
 
 .avatar {
+  flex-shrink: 0;
   width: var(--avatar, 72px);
   height: var(--avatar, 72px);
   border-radius: 50%;
@@ -262,9 +301,15 @@
 }
 
 .personName {
-  font-size: clamp(1rem, min(1.4vw, 2.4vh), 1.6rem);
+  font-size: var(--name-size);
   text-align: center;
   line-height: 1.2;
+  max-width: 100%;
+  /* Nombres largos: hasta 2 líneas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .hint a {

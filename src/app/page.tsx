@@ -124,7 +124,7 @@ export default function Home() {
   const focusReady = wantsQuestion ? question.trim().length > 2 : topic !== "";
 
   return (
-    <main className={styles.main}>
+    <main className={`${styles.main} ${step === "name" ? styles.fit : ""}`}>
       <header className={`${styles.header} ${step === "pick" || step === "reading" ? styles.compact : ""}`}>
         <span className={styles.moon}>☾ ✦ ☽</span>
         <h1>Madam Esteves</h1>
@@ -148,8 +148,11 @@ export default function Home() {
           {people && people.length > 0 && (
             <div
               className={styles.people}
-              // Filas que ocupa la grilla con 6 columnas: las fotos se achican si hay más gente
-              style={{ ["--rows" as string]: Math.max(2, Math.ceil(people.length / 6)) }}
+              // Filas según las columnas de cada tamaño de pantalla: las fotos se achican si hay más gente
+              style={{
+                ["--rows-6" as string]: Math.ceil(people.length / 6),
+                ["--rows-4" as string]: Math.ceil(people.length / 4),
+              }}
             >
               {people.map((p) => (
                 <button
