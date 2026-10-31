@@ -12,6 +12,7 @@ type AdminPerson = {
   photoUrl: string | null;
   usedAt: number | null;
   useCount: number;
+  hidden: boolean;
 };
 
 type FormState = {
@@ -123,6 +124,18 @@ export default function AdminPage() {
       setMessage({ text: "No se pudo cambiar el estado.", error: true });
       return;
     }
+    await load();
+  }
+
+  async function toggleHidden(p: AdminPerson) {
+    // Cambio optimista para que el switch responda al instante
+    setPeople((list) => list.map((x) => (x.id === p.id ? { ...x, hidden: !p.hidden } : x)));
+    const res = await fetch(`/api/admin/people/${p.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hidden: !p.hidden }),
+    });
+    if (!res.ok) setMessage({ text: "No se pudo cambiar la visibilidad.", error: true });
     await load();
   }
 
@@ -242,7 +255,7 @@ export default function AdminPage() {
         )}
         {people.length === 0 && <p className={styles.empty}>Todavía no hay nadie cargado.</p>}
         {people.map((p) => (
-          <article key={p.id} className={styles.person}>
+          <article key={p.id} className={`${styles.person} ${p.hidden ? styles.personHidden : ""}`}>
             <span className={styles.avatar}>
               {p.photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -264,6 +277,11 @@ export default function AdminPage() {
               </span>
             </div>
             <div className={styles.personActions}>
+              <label className={styles.switch} title={p.hidden ? "Oculto en la pantalla principal" : "Se muestra en la pantalla principal"}>
+                <input type="checkbox" role="switch" checked={!p.hidden} onChange={() => void toggleHidden(p)} />
+                <span className={styles.track} aria-hidden />
+                {p.hidden ? "Oculto" : "Visible"}
+              </label>
               <button className={styles.secondary} onClick={() => void toggleUsed(p)}>
                 {p.usedAt ? "Marcar sin consultar" : "Marcar consultó"}
               </button>

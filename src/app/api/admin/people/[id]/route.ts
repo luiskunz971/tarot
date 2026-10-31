@@ -1,4 +1,4 @@
-import { deletePerson, setUsed, updatePerson } from "@/lib/db";
+import { deletePerson, setHidden, setUsed, updatePerson } from "@/lib/db";
 import { readPersonForm } from "@/lib/personForm";
 
 export const runtime = "nodejs";
@@ -14,13 +14,15 @@ export async function PUT(req: Request, { params }: Ctx) {
   return ok ? Response.json({ ok }) : Response.json({ error: "No existe esa persona." }, { status: 404 });
 }
 
-// Cambia a mano el estado de consulta: { used: true | false }
+// Cambia a mano el estado de consulta { used: boolean } o la visibilidad { hidden: boolean }
 export async function PATCH(req: Request, { params }: Ctx) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) return Response.json({ error: "ID inválido." }, { status: 400 });
-  const body = (await req.json().catch(() => ({}))) as { used?: unknown };
-  if (typeof body.used !== "boolean") return Response.json({ error: "Falta used." }, { status: 400 });
-  const ok = await setUsed(id, body.used);
+  const body = (await req.json().catch(() => ({}))) as { used?: unknown; hidden?: unknown };
+  let ok: boolean;
+  if (typeof body.hidden === "boolean") ok = await setHidden(id, body.hidden);
+  else if (typeof body.used === "boolean") ok = await setUsed(id, body.used);
+  else return Response.json({ error: "Falta used o hidden." }, { status: 400 });
   return ok ? Response.json({ ok }) : Response.json({ error: "No existe esa persona." }, { status: 404 });
 }
 

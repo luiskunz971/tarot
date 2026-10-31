@@ -13,6 +13,7 @@ export type Person = {
   updatedAt: number;
   usedAt: number | null; // última vez que tocó "Revelar mi destino"
   useCount: number;
+  hidden: boolean; // oculto en la pantalla principal
 };
 
 let client: Client | null = null;
@@ -61,6 +62,7 @@ async function db(): Promise<Client> {
       if (!names.includes("use_count")) {
         await addColumn("ALTER TABLE people ADD COLUMN use_count INTEGER NOT NULL DEFAULT 0");
       }
+      if (!names.includes("hidden")) await addColumn("ALTER TABLE people ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0");
     })
     .catch((err) => {
       ready = null; // reintentar en el próximo pedido
@@ -80,11 +82,12 @@ function toPerson(row: Record<string, unknown>): Person {
     updatedAt: Number(row.updated_at),
     usedAt: row.used_at == null ? null : Number(row.used_at),
     useCount: Number(row.use_count ?? 0),
+    hidden: Number(row.hidden ?? 0) === 1,
   };
 }
 
 const PERSON_COLUMNS =
-  "id, name, description, phone, photo IS NOT NULL AS has_photo, updated_at, used_at, use_count";
+  "id, name, description, phone, photo IS NOT NULL AS has_photo, updated_at, used_at, use_count, hidden";
 
 export async function listPeople(): Promise<Person[]> {
   const c = await db();
@@ -174,6 +177,13 @@ export async function setUsed(id: number, used: boolean): Promise<boolean> {
   const res = used
     ? await c.execute({ sql: "UPDATE people SET used_at = ? WHERE id = ?", args: [Date.now(), id] })
     : await c.execute({ sql: "UPDATE people SET used_at = NULL, use_count = 0 WHERE id = ?", args: [id] });
+  return res.rowsAffected > 0;
+}
+
+// Muestra u oculta a la persona en la pantalla principal
+export async function setHidden(id: number, hidden: boolean): Promise<boolean> {
+  const c = await db();
+  const res = await c.execute({ sql: "UPDATE people SET hidden = ? WHERE id = ?", args: [hidden ? 1 : 0, id] });
   return res.rowsAffected > 0;
 }
 
